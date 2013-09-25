@@ -1,12 +1,13 @@
 import numpy as np
 
 class KMeans:
-    def __init__(self, clusters, init=None, tol=1e-6):
+    def __init__(self, clusters, init=None, tol=1e-6, callback=None):
         self.clusters = clusters
         self.init = init
         self.centroids = None
         self.partition = None
         self.tol = tol
+        self.__callback = callback
 
     def cluster(self, dataset):
         # Initialize numpy arrays
@@ -42,6 +43,19 @@ class KMeans:
                     self.centroids[i] = np.mean(vs, axis=0)
                 else:
                     self.centroids[i] = prev_centroids[i]
+
+            # Pass statistics to callback listener
+            if self.__callback:
+                cost_func = 0
+                for i,j in zip(np.arange(rows), self.partition):
+                    cost_func += self.__distance(dataset[i], self.centroids[j])
+
+                dct = {
+                    'centroids': self.centroids,
+                    'partition': self.partition,
+                    'cost_func': cost_func
+                    }
+                self.__callback(dct)
 
             # Check if converged
             if np.all(stop_vfunc(self.centroids, prev_centroids)):
