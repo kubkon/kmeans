@@ -39,10 +39,7 @@ class KMeans:
 
             for i in np.arange(self.clusters):
                 vs = [d for j,d in zip(self.partition, dataset) if j == i]
-                if vs:
-                    self.centroids[i] = np.mean(vs, axis=0)
-                else:
-                    self.centroids[i] = prev_centroids[i]
+                self.centroids[i] = np.mean(vs, axis=0)
 
             # Pass statistics to callback listener
             if self.__callback:
