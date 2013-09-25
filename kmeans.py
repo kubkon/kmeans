@@ -1,17 +1,17 @@
 import numpy as np
 
-class KMeans(object):
+class KMeans:
     def __init__(self, clusters, init=None):
         self.clusters = clusters
         self.init = init
-        self.centroids = np.array([])
-        self.partition = np.array([])
+        self.centroids = None
+        self.partition = None
 
     def cluster(self, dataset):
         # Randomly choose initial set of centroids if undefined
         if not self.init:
-            rows = dataset.shape[0]
-            self.init = np.array([dataset[i] for i in np.random.randint(0, rows-1, size=self.clusters)], dtype=np.float)
+            rows = np.arange(dataset.shape[0])
+            self.init = np.array([dataset[i] for i in np.random.choice(rows, size=self.clusters, replace=False)], dtype=np.float)
 
         self.centroids = self.init
         
