@@ -15,11 +15,12 @@ with open('faithful.txt', 'rt') as f:
 
 # Cluster using K-Means algorithm
 k_means = KMeans(2)
-k_means.fit(data)
+k_means.cluster(data)
 centroids = k_means.centroids
+pprint(centroids)
 
 # Plot
 plt.figure()
 plt.scatter(np.transpose(data)[0], np.transpose(data)[1])
-plt.scatter(np.transpose(centroids)[0], np.transpose(centroids)[1], marker='x')
+plt.scatter(np.transpose(centroids)[0], np.transpose(centroids)[1], color='r', marker='x')
 plt.savefig('scatter_plot.pdf')
