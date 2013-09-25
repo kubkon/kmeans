@@ -1,7 +1,30 @@
 import numpy as np
 
 class KMeans:
+    """
+    This class implements a standard version of the K-Means algorithm
+    as described in the book "Pattern Recognition and Machine Learning"
+    by Christopher M. Bishop.
+
+    Attributes:
+    clusters -- number of clusters
+    init -- NumPy array of initial centroids
+    centroids -- NumPy array of centroids
+    partition -- NumPy array of indices that partition the dataset
+    tol -- tolerance for stopping condition
+    """
+
     def __init__(self, clusters, init=None, tol=1e-6, callback=None):
+        """
+        Arguments:
+        clusters -- number of clusters
+
+        Keyword arguments:
+        init -- NumPy array of initial centroids (default: None)
+        tol -- desired tolerance for stopping condition (default: 1e-6)
+        callback -- callback function accepting a dictionary of parameters:
+        centroids, partition, and cost_func (default: None)
+        """
         self.clusters = clusters
         self.init = init
         self.centroids = None
@@ -10,6 +33,12 @@ class KMeans:
         self.__callback = callback
 
     def cluster(self, dataset):
+        """
+        Runs standard K-Means algorithm on the dataset.
+
+        Arguments:
+        dataset -- input dataset to be clustered
+        """
         # Initialize numpy arrays
         rows, cols = dataset.shape[0], dataset.shape[1]
         self.partition = np.empty(rows, dtype=np.int)
@@ -59,4 +88,11 @@ class KMeans:
                 break
 
     def __distance(self, v1, v2):
+        """
+        Returns Euclidean distance squared between two NumPy arrays.
+
+        Arguments:
+        v1 -- 1st vector
+        v2 -- 2nd vector
+        """
         return np.sum(np.power(v1 - v2, 2))
