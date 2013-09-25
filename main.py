@@ -3,7 +3,7 @@ from pprint import pprint
 import numpy as np
 import matplotlib.pyplot as plt
 
-from kmeans import KMeans
+from kmeans import KMeans, OnlineKMeans
 
 
 # Read in dataset from file
@@ -24,6 +24,15 @@ def callback(dct):
 k_means = KMeans(2, tol=1e-8, callback=callback)
 k_means.cluster(data)
 centroids = k_means.centroids
+pprint(centroids)
+
+# Cluster using online K-Means algorithm
+online_k_means = OnlineKMeans(2)
+online_k_means.cluster(data[:10])
+for rate,data_point in zip(np.linspace(1.0, 1e-6, len(data[10:])), data[10:]):
+    online_k_means.update(data_point, rate)
+centroids = online_k_means.centroids
+pprint(centroids)
 
 # Plot data with centroids
 plt.figure()
