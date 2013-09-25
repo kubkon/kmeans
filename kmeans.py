@@ -9,11 +9,17 @@ class KMeans:
         self.tol = tol
 
     def cluster(self, dataset):
+        # Initialize numpy arrays
+        rows, cols = dataset.shape[0], dataset.shape[1]
+        self.partition = np.empty(rows, dtype=np.int)
+        distances = np.empty(self.clusters, dtype=np.float)
+
         # Randomly choose initial set of centroids if undefined
         if not self.init:
-            rows = np.arange(dataset.shape[0])
-            self.init = np.array([dataset[i] for i in np.random.choice(rows, size=self.clusters, replace=False)], dtype=np.float)
-
+            self.init = np.empty((self.clusters, cols), dtype=np.float)
+            for i in np.arange(self.clusters):
+                for j in np.random.choice(np.arange(rows), size=self.clusters, replace=False):
+                    self.init[i] = dataset[j]
         self.centroids = self.init
 
         # Vectorize stopping condition function
@@ -22,21 +28,20 @@ class KMeans:
         # Optimize
         while True:
             # Partition dataset
-            partition = []
-            for d in dataset:
-                partition.append(np.argmin([self.__distance(c, d) for c in self.centroids]))
-            self.partition = np.array(partition, np.float)
+            for i in np.arange(rows):
+                for j in np.arange(self.clusters):
+                    distances[j] = self.__distance(self.centroids[j], dataset[i])
+                self.partition[i] = np.argmin(distances)
 
             # Update centroids
-            centroids = []
-            for i in range(self.clusters):
+            prev_centroids = np.copy(self.centroids)
+
+            for i in np.arange(self.clusters):
                 vs = [d for j,d in zip(self.partition, dataset) if j == i]
                 if vs:
-                    centroids.append(np.mean(vs, axis=0))
+                    self.centroids[i] = np.mean(vs, axis=0)
                 else:
-                    centroids.append(self.centroids[i])
-            prev_centroids = self.centroids
-            self.centroids = np.array(centroids, np.float)
+                    self.centroids[i] = prev_centroids[i]
 
             # Check if converged
             if np.all(stop_vfunc(self.centroids, prev_centroids)):
