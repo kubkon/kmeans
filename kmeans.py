@@ -44,15 +44,14 @@ class KMeans:
         # Initialize algorithm
         self.initialize(dataset)
         rows = dataset.shape[0]
-        distances = np.empty(self.clusters, dtype=np.float)
         
         # Optimize
         while True:
             # Partition dataset
             for i in np.arange(rows):
                 for j in np.arange(self.clusters):
-                    distances[j] = self.distance(self.centroids[j], dataset[i])
-                self.partition[i] = np.argmin(distances)
+                    self.distances[j] = self.distance(self.centroids[j], dataset[i])
+                self.partition[i] = np.argmin(self.distances)
 
             # Update centroids
             prev_centroids = np.copy(self.centroids)
@@ -75,6 +74,8 @@ class KMeans:
 
     def call_back(self):
         """
+        Callback with the dictionary containing statistics: current centroids,
+        partition, and value of the cost function.
         """
         if self.__callback:
             dct = {
@@ -105,8 +106,9 @@ class KMeans:
         # Get number of samples (rows) and features (cols)
         rows, cols = dataset.shape[0], dataset.shape[1]
 
-        # Initialize partition array
+        # Initialize partition and distances array
         self.partition = np.empty(rows, dtype=np.int)
+        self.distances = np.empty(self.clusters, dtype=np.float)
 
         # Randomly choose initial set of centroids if undefined
         if not self.init:
@@ -142,12 +144,10 @@ class OnlineKMeans(KMeans):
         learning_rate -- learning rate parameter
         """
         # Find the nearest centroid to the data point
-        distances = np.empty(self.clusters, dtype=np.float)
-
         for j in np.arange(self.clusters):
-            distances[j] = self.distance(self.centroids[j], data_point)
+            self.distances[j] = self.distance(self.centroids[j], data_point)
 
-        nearest = np.argmin(distances)
+        nearest = np.argmin(self.distances)
 
         # Update the nearest centroid
         self.centroids[nearest] += learning_rate * (data_point - self.centroids[nearest])
@@ -229,6 +229,20 @@ class MiniBatchKMeans(KMeans):
 
                 # Take gradient step
                 self.centroids[j] = (1 - rate) * centroid + rate * batch[i]
+
+            # Partition the entire dataset based on the derived centroids
+            for i in np.arange(rows):
+                for j in np.arange(self.clusters):
+                    self.distances[j] = self.distance(self.centroids[j], dataset[i])
+                self.partition[i] = np.argmin(self.distances)
+
+            # Update cost function
+            self.cost_func = 0
+            for i,j in zip(np.arange(rows), self.partition):
+                self.cost_func += self.distance(dataset[i], self.centroids[j])
+
+            # Pass statistics to callback listener
+            self.call_back()
 
             # Update iteration count
             it += 1
