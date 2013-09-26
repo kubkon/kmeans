@@ -41,23 +41,13 @@ class KMeans:
         Arguments:
         dataset -- input dataset to be clustered
         """
-        # Initialize numpy arrays
-        rows, cols = dataset.shape[0], dataset.shape[1]
-        self.partition = np.empty(rows, dtype=np.int)
-        distances = np.empty(self.clusters, dtype=np.float)
-
-        # Randomly choose initial set of centroids if undefined
-        if not self.init:
-            self.init = np.empty((self.clusters, cols), dtype=np.float)
-            for i in np.arange(self.clusters):
-                for j in np.random.choice(np.arange(rows), size=self.clusters, replace=False):
-                    self.init[i] = dataset[j]
-        self.centroids = self.init
-
-        # Vectorize stopping condition function
-        stop_vfunc = np.vectorize(lambda c1, c2: np.sqrt(self.distance(c1, c2)) <= self.tol)
+        # Initialize algorithm
+        self.initialize(dataset)
+        rows = dataset.shape[0]
         
         # Optimize
+        distances = np.empty(self.clusters, dtype=np.float)
+
         while True:
             # Partition dataset
             for i in np.arange(rows):
@@ -81,18 +71,8 @@ class KMeans:
             self.call_back()
 
             # Check if converged
-            if np.all(stop_vfunc(self.centroids, prev_centroids)):
+            if np.all(self.stop_vfunc(self.centroids, prev_centroids)):
                 break
-
-    def distance(self, v1, v2):
-        """
-        Returns Euclidean distance squared between two NumPy arrays.
-
-        Arguments:
-        v1 -- 1st vector
-        v2 -- 2nd vector
-        """
-        return np.sum(np.power(v1 - v2, 2))
 
     def call_back(self):
         """
@@ -105,6 +85,40 @@ class KMeans:
                 }
             self.__callback(dct)
 
+    def distance(self, v1, v2):
+        """
+        Returns Euclidean distance squared between two NumPy arrays.
+
+        Arguments:
+        v1 -- 1st vector
+        v2 -- 2nd vector
+        """
+        return np.sum(np.power(v1 - v2, 2))
+
+    def initialize(self, dataset):
+        """
+        Initializes variables of the algorithm; such as, the initial
+        set of centroids if undefined, etc.
+
+        Arguments:
+        dataset -- input dataset
+        """
+        # Get number of samples (rows) and features (cols)
+        rows, cols = dataset.shape[0], dataset.shape[1]
+
+        # Initialize partition array
+        self.partition = np.empty(rows, dtype=np.int)
+
+        # Randomly choose initial set of centroids if undefined
+        if not self.init:
+            self.init = np.empty((self.clusters, cols), dtype=np.float)
+            for i in np.arange(self.clusters):
+                for j in np.random.choice(np.arange(rows), size=self.clusters, replace=False):
+                    self.init[i] = dataset[j]
+        self.centroids = self.init
+
+        # Vectorize stopping condition function
+        self.stop_vfunc = np.vectorize(lambda c1, c2: np.sqrt(self.distance(c1, c2)) <= self.tol)
 
 class OnlineKMeans(KMeans):
     """
@@ -138,3 +152,45 @@ class OnlineKMeans(KMeans):
 
         # Update the nearest centroid
         self.centroids[nearest] += learning_rate * (data_point - self.centroids[nearest])
+
+
+class MiniBatchKMeans(KMeans):
+    """
+    This class implements a mini-batch version of the K-Means algorithm
+    as described in the paper "Web-Scale K-Means Clustering" by D. Sculley.
+
+    Attributes:
+    clusters -- number of clusters
+    mini_batch -- mini-batch size
+    init -- NumPy array of initial centroids
+    centroids -- NumPy array of centroids
+    partition -- NumPy array of indices that partition the dataset
+    tol -- tolerance for stopping condition
+    """
+
+    def __init__(self, clusters, mini_batch, init=None, tol=1e-6, callback=None):
+        """
+        Arguments:
+        clusters -- number of clusters
+        mini_batch -- mini-batch size
+
+        Keyword arguments:
+        init -- NumPy array of initial centroids (default: None)
+        tol -- desired tolerance for stopping condition (default: 1e-6)
+        callback -- callback function accepting a dictionary of parameters:
+        centroids, partition, and cost_func (default: None)
+        """
+        super().__init__(clusters, init=init, tol=tol, callback=callback)
+        self.mini_batch = mini_batch
+
+    def cluster(self, dataset):
+        """
+        Runs standard K-Means algorithm on the dataset.
+
+        Arguments:
+        dataset -- input dataset to be clustered
+        """
+        # Initialize algorithm
+        self.initialize(dataset)
+        rows, cols = dataset.shape[0], dataset.shape[1]
+        
