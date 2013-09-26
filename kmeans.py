@@ -44,10 +44,9 @@ class KMeans:
         # Initialize algorithm
         self.initialize(dataset)
         rows = dataset.shape[0]
+        distances = np.empty(self.clusters, dtype=np.float)
         
         # Optimize
-        distances = np.empty(self.clusters, dtype=np.float)
-
         while True:
             # Partition dataset
             for i in np.arange(rows):
@@ -162,19 +161,21 @@ class MiniBatchKMeans(KMeans):
     Attributes:
     clusters -- number of clusters
     mini_batch -- mini-batch size
+    iterations -- maximum number of iterations allowed
     init -- NumPy array of initial centroids
     centroids -- NumPy array of centroids
     partition -- NumPy array of indices that partition the dataset
     tol -- tolerance for stopping condition
     """
 
-    def __init__(self, clusters, mini_batch, init=None, tol=1e-6, callback=None):
+    def __init__(self, clusters, mini_batch, iterations=None, init=None, tol=1e-6, callback=None):
         """
         Arguments:
         clusters -- number of clusters
         mini_batch -- mini-batch size
 
         Keyword arguments:
+        iterations -- maximum number of iterations allowed
         init -- NumPy array of initial centroids (default: None)
         tol -- desired tolerance for stopping condition (default: 1e-6)
         callback -- callback function accepting a dictionary of parameters:
@@ -182,6 +183,7 @@ class MiniBatchKMeans(KMeans):
         """
         super().__init__(clusters, init=init, tol=tol, callback=callback)
         self.mini_batch = mini_batch
+        self.iterations = iterations
 
     def cluster(self, dataset):
         """
@@ -193,4 +195,44 @@ class MiniBatchKMeans(KMeans):
         # Initialize algorithm
         self.initialize(dataset)
         rows, cols = dataset.shape[0], dataset.shape[1]
-        
+        batch = np.empty((self.mini_batch, cols), dtype=np.float)
+        batch_distances = np.empty(self.clusters, dtype=np.float)
+        batch_partition = np.empty(self.mini_batch, dtype=np.int)
+        centroid_counts = np.zeros(self.clusters, dtype=np.int)
+        it = 0
+
+        # Optimize
+        while it < self.iterations:
+
+            # Randomly pick mini_batch samples from the sample space
+            for i,j in zip(np.arange(self.mini_batch), np.random.choice(np.arange(rows), size=self.mini_batch, replace=False)):
+                batch[i] = dataset[j]
+
+            # Cache the center nearest to each sample in batch array
+            for i in np.arange(self.mini_batch):
+                for j in np.arange(self.clusters):
+                    batch_distances[j] = self.distance(self.centroids[j], batch[i])
+                batch_partition[i] = np.argmin(batch_distances)
+
+            # Update centroids
+            prev_centroids = np.copy(self.centroids)
+
+            for i in np.arange(self.mini_batch):
+                j = batch_partition[i]
+                centroid = self.centroids[j]
+
+                # Update per centroid counts
+                centroid_counts[j] += 1
+
+                # Get per centroid learning rate
+                rate = 1 / centroid_counts[j]
+
+                # Take gradient step
+                self.centroids[j] = (1 - rate) * centroid + rate * batch[i]
+
+            # Update iteration count
+            it += 1
+
+            # Check if converged
+            if np.all(self.stop_vfunc(self.centroids, prev_centroids)):
+                break

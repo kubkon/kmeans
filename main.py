@@ -3,7 +3,7 @@ from pprint import pprint
 import numpy as np
 import matplotlib.pyplot as plt
 
-from kmeans import KMeans, OnlineKMeans
+from kmeans import KMeans, OnlineKMeans, MiniBatchKMeans
 
 
 # Read in dataset from file
@@ -32,6 +32,12 @@ online_k_means.cluster(data[:10])
 for rate,data_point in zip(np.linspace(1.0, 1e-6, len(data[10:])), data[10:]):
     online_k_means.update(data_point, rate)
 centroids = online_k_means.centroids
+pprint(centroids)
+
+# Cluster using mini-batch K-Means algorithm
+mini_batch_k_means = MiniBatchKMeans(2, 10, iterations=10, callback=callback)
+mini_batch_k_means.cluster(data)
+centroids = mini_batch_k_means.centroids
 pprint(centroids)
 
 # Plot data with centroids
