@@ -3,7 +3,7 @@ from pprint import pprint
 import numpy as np
 import matplotlib.pyplot as plt
 
-from kmeans import KMeans, OnlineKMeans, MiniBatchKMeans
+from kmeans.algorithms import KMeans, OnlineKMeans, MiniBatchKMeans
 
 
 def callback(output_dct, input_dct):
