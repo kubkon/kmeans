@@ -47,6 +47,7 @@ plt.scatter(np.transpose(data)[0], np.transpose(data)[1])
 plt.scatter(np.transpose(kmeans_centroids)[0], np.transpose(kmeans_centroids)[1], color='r', marker='x')
 plt.scatter(np.transpose(minibatch_centroids)[0], np.transpose(minibatch_centroids)[1], color='r', marker='+')
 plt.scatter(np.transpose(online_centroids)[0], np.transpose(online_centroids)[1], color='r', marker='D')
+plt.legend(['Dataset', 'K-Means', 'Mini-Batch', 'Online'], loc='upper left')
 plt.savefig('scatter_plot.pdf')
 
 # Plot cost function
