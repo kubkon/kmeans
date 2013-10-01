@@ -5,4 +5,5 @@
 !*.md
 !*.txt
 !*.in
+KMeans.egg-info/
 
