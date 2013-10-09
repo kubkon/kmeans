@@ -153,7 +153,7 @@ class KMeans:
         self.centroids = self.init
 
         # Vectorize stopping condition function
-        self.stop_vfunc = np.vectorize(lambda c1, c2: np.sqrt(self.distance(c1, c2)) <= self.tol)
+        self.stop_vfunc = np.vectorize(lambda c1, c2: self.distance(c1, c2) <= self.tol)
 
 class OnlineKMeans(KMeans):
     """
