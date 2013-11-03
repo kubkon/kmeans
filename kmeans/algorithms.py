@@ -34,7 +34,7 @@ class KMeans:
         self.cost_func = 0
         self.__callback = callback
 
-    def cluster(self, dataset):
+    def fit(self, dataset):
         """
         Runs standard K-Means algorithm on the dataset.
 
@@ -73,7 +73,7 @@ class KMeans:
             if np.all(conv):
                 break
 
-    def predict(self, dataset):
+    def cluster(self, dataset):
         """
         Partitions dataset using pre-computed centroid values.
 
@@ -140,8 +140,6 @@ class KMeans:
                     self.init[i] = dataset[j]
         self.centroids = self.init
 
-        # Vectorize stopping condition function
-        self.stop_vfunc = np.vectorize(lambda c1, c2: self.distance(c1, c2) <= self.tol)
 
 class OnlineKMeans(KMeans):
     """
@@ -207,7 +205,7 @@ class MiniBatchKMeans(KMeans):
         self.mini_batch = mini_batch
         self.iterations = iterations
 
-    def cluster(self, dataset):
+    def fit(self, dataset):
         """
         Runs standard K-Means algorithm on the dataset.
 
@@ -270,5 +268,6 @@ class MiniBatchKMeans(KMeans):
             it += 1
 
             # Check if converged
-            if np.all(self.stop_vfunc(self.centroids, prev_centroids)):
+            conv = [self.distance(self.centroids[i], prev_centroids[i]) <= self.tol for i in np.arange(self.clusters)]
+            if np.all(conv):
                 break

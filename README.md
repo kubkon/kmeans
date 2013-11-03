@@ -47,7 +47,7 @@ with open('faithful.txt', 'rt') as f:
 
 # Cluster using K-Means algorithm
 k_means = KMeans(2, tol=1e-8)
-k_means.cluster(data)
+k_means.fit(data)
 
 # Print the results
 print("Computed centroids:")

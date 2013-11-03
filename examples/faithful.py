@@ -26,19 +26,19 @@ minibatch_dct = {}
 
 # Cluster using K-Means algorithm
 k_means = KMeans(2, tol=1e-8, callback=lambda dct: callback(kmeans_dct, dct))
-k_means.cluster(data)
+k_means.fit(data)
 kmeans_centroids = k_means.centroids
 
 # Cluster using online K-Means algorithm
 online_k_means = OnlineKMeans(2, callback=lambda dct: callback(online_dct, dct))
-online_k_means.cluster(data[:10])
+online_k_means.fit(data[:10])
 for rate,data_point in zip(np.linspace(1.0, 1e-6, len(data[10:])), data[10:]):
     online_k_means.update(data_point, rate)
 online_centroids = online_k_means.centroids
 
 # Cluster using mini-batch K-Means algorithm
 mini_batch_k_means = MiniBatchKMeans(2, 10, iterations=10, callback=lambda dct: callback(minibatch_dct, dct))
-mini_batch_k_means.cluster(data)
+mini_batch_k_means.fit(data)
 minibatch_centroids = mini_batch_k_means.centroids
 
 # Plot data with centroids
