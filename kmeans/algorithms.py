@@ -13,7 +13,6 @@ class KMeans:
     partition -- NumPy array of indices that partition the dataset
     tol -- tolerance for stopping condition
     cost_func -- objective cost function
-    labeled_centroids -- dictionary of centroids with assigned labels
     """
 
     def __init__(self, clusters, init=None, tol=1e-6, callback=None):
@@ -31,7 +30,6 @@ class KMeans:
         self.init = init
         self.centroids = None
         self.partition = None
-        self.labeled_centroids = None
         self.tol = tol
         self.cost_func = 0
         self.__callback = callback
@@ -71,7 +69,8 @@ class KMeans:
             self.call_back()
 
             # Check if converged
-            if np.all(self.stop_vfunc(self.centroids, prev_centroids)):
+            conv = [self.distance(self.centroids[i], prev_centroids[i]) <= self.tol for i in np.arange(self.clusters)]
+            if np.all(conv):
                 break
 
     def predict(self, dataset):
@@ -91,20 +90,9 @@ class KMeans:
             for j in np.arange(self.clusters):
                 distances[j] = self.distance(self.centroids[j], dataset[i])
             nearest_index = np.argmin(distances)
-            partition.append(self.labeled_centroids[nearest_index])
+            partition.append(self.centroids[nearest_index])
 
         return partition
-
-    def label_centroids(self, f):
-        """
-        Labels centroids according to the specified function.
-
-        Arguments:
-        f -- function that takes an array of centroids as an argument, and
-        returns a dictionary of labeled centroids where key corresponds to the
-        index of a centroid within self.centroids array, and value is the label
-        """
-        self.labeled_centroids = f(self.centroids)
 
     def call_back(self):
         """
