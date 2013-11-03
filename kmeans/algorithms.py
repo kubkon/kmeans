@@ -90,7 +90,7 @@ class KMeans:
             for j in np.arange(self.clusters):
                 distances[j] = self.distance(self.centroids[j], dataset[i])
             nearest_index = np.argmin(distances)
-            partition.append(self.centroids[nearest_index])
+            partition.append(nearest_index)
 
         return partition
 
